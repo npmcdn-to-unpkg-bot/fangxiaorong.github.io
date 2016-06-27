@@ -280,6 +280,14 @@ export const GithubRequest = ((params) => {
     getTree(sha, cb) { // GET /repos/:owner/:repo/git/trees/:sha
       request('GET', `/repos/${context.username}/${context.reponame}/git/trees/${sha}`, cb);
     },
+    getContent(ref, path, raw) {
+      const realPath = path ? `${encodeURI(path)}` : '';
+      return request('GET', `/repos/${context.username}/${context.reponame}/contents/${realPath}`, {
+         ref,
+      }, {
+        raw,
+      }, cb);
+    },
     writeFile(branch, path, content, message, cb) {
       this.getSha(branch, path, (error, data, status, xhr) => {
         const commit = {
@@ -349,5 +357,25 @@ export const AVRequest = (params) => {
       const path = '/classes/Category';
       request('GET', path, cb);
     },
+    getArticles(page, cb) {
+      const start = (page - 1) * 10;
+      const path = `/classes/Article?count=1&limit=10&order=-updatedAt&keys=-content&skip=${start}`;
+      request('GET', path, cb);
+    },
+    writePost(uid, user, title, content, tags, sha, path, cb) {
+      const postObject = {
+        user,
+        title,
+        content,
+        tags,
+        sha,
+        path,
+      };
+      if (uid) {
+        request('PUT', `/classes/Post/${uid}`, postObject, cb);
+      } else {
+        request('POST', '/classes/Post', postObject, cb);
+      }
+    }
   };
 };

@@ -1,11 +1,9 @@
 <template>
   <div>
     <div class='head'>One day I have a dream <br />One day I try to finish this. <br />This is my life.</div>
-    <div v-for='category in categories'>
-      <div><h2>{{ category.vname }}</h2></div>
-      <ul>
-        <li v-for='article in category.articles'><a v-link="'/article/' + article[0]">{{article[1]}}</a></li>
-      </ul>
+    <div v-for='article in articles'>
+      <div><h2>{{ article.title }}</h2></div>
+      <div>{{ article.short }}</div>
     </div>
   </div>
 </template>
@@ -15,7 +13,9 @@
 
   export default {
     created() {
-      this.fetchData();
+      if (this.articlesinfo.page === 0) {
+        this.fetchData();
+      }
     },
     data() {
       // const githubRequest = GithubRequest({username: 'fangreater@gmail.com',
@@ -39,7 +39,10 @@
       //     }
       // });
       return {
-        categories: [],
+        articlesinfo: {
+          page: 0,
+        },
+        articles: [],
         message: 'This is Message1111.',
       };
     },
@@ -47,9 +50,10 @@
       fetchData() {
         /* eslint new-cap: ["error", { "capIsNew": false }] */
         const avRequest = AVRequest();
-        avRequest.getCategories((error, data) => {
+        avRequest.getArticles(this.articlesinfo.page, (error, data) => {
           if (!error) {
-            this.categories = data.results;
+            this.articles = data.results;
+            this.articlesinfo.count = data.count;
           }
         });
       },
