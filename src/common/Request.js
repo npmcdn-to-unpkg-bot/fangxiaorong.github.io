@@ -1,4 +1,5 @@
 import md5 from 'md5';
+import { Base64 } from './common.js';
 
 // class NetRequest {
 //     constructor() {
@@ -76,6 +77,7 @@ function ajax(options, cb) {
   }
   xhr.open(options.type, options.url);
   if (options.data && options.type !== 'GET') {
+    window.console.log(options.contentType);
     xhr.setRequestHeader('Content-Type', options.contentType);
   }
 
@@ -161,8 +163,11 @@ function Request(clientOptions) {
       headers: {},
       processData: false,
       data: !options.raw && data && JSON.stringify(data) || data,
-      dataType: !options.raw ? 'json' : void 0,
+      contentType: options.contentType,
     };
+    if (!options.raw) {
+      ajaxConfig.dataType = 'json';
+    }
 
     if (clientOptions.headers) {
       Object.keys(clientOptions.headers).forEach((key) => {
@@ -273,6 +278,9 @@ export const GithubRequest = ((params) => {
     changeRepo(reponame) {
       context.reponame = reponame;
     },
+    getCurrentUserName() {
+      return context.username;
+    },
     getSha(branch, path, cb) {
       branch = branch ? `?ref=${branch}` : '';
       request('GET', `/repos/${context.username}/${context.reponame}/contents/${path}${branch}`, cb);
@@ -289,6 +297,8 @@ export const GithubRequest = ((params) => {
       }, cb);
     },
     writeFile(branch, path, content, message, cb) {
+      window.console.log(Base64.encode(content));
+
       this.getSha(branch, path, (error, data, status, xhr) => {
         const commit = {
           branch,
@@ -297,7 +307,7 @@ export const GithubRequest = ((params) => {
           //     name: options.username,
           //     email: options.email
           // },
-          content: btoa(content)
+          content: Base64.encode(content)
         };
         if (!error && data.sha) {
           commit.sha = data.sha;
@@ -362,6 +372,11 @@ export const AVRequest = (params) => {
       const path = `/classes/Article?count=1&limit=10&order=-updatedAt&keys=-content&skip=${start}`;
       request('GET', path, cb);
     },
+    getPosts(page, cb) {
+      const start = (page - 1) * 10;
+      const path = `/classes/Post?count=1&limit=10&order=-updatedAt&skip=${start}`;
+      request('GET', path, cb);
+    },
     writePost(uid, user, title, content, tags, sha, path, cb) {
       const postObject = {
         user,
@@ -379,3 +394,37 @@ export const AVRequest = (params) => {
     }
   };
 };
+
+export function loadPluginScript(path, callback) {
+  if (!loadPluginScript.scripts) {
+    loadPluginScript.scripts = {};
+    loadPluginScript.container = document.getElementsByTagName('head')[0];
+  }
+  
+  if (!loadPluginScript.scripts[path]) {
+    const el = document.createElement('script');
+    el.onload = el.onerror = el.onreadystatechange = (() => {
+      const loaded = loadPluginScript.scripts[path].loaded;
+      if (el.readyState && !(/^c|loade/.test(el.readyState)) || loaded) {
+        return;
+      }
+      el.onload = el.onreadystatechange = null;
+      loadPluginScript.scripts[path].loaded = true;
+
+      if (callback) {
+        callback();
+      }
+    });
+
+    el.async = false;
+    el.src = `static/plugin/${path}`;
+    loadPluginScript.container.insertBefore(el, loadPluginScript.container.lastChild);
+    loadPluginScript.scripts[path] = { loaded: false };
+  }
+
+  ///static/plugin/prism/components
+}
+
+
+export const githubInstance = GithubRequest({username: 'fangreater@gmail.com', password: 'Fang19851122'});
+export const avInstance = AVRequest();

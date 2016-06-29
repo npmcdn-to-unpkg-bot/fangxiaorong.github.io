@@ -1,15 +1,21 @@
 <template>
   <div>
     <div class='head'>One day I have a dream <br />One day I try to finish this. <br />This is my life.</div>
-    <div v-for='article in articles'>
-      <div><h2>{{ article.title }}</h2></div>
-      <div>{{ article.short }}</div>
+    <div class="content" v-for='article in articles'>
+      <div class="article-head">
+        <h2><a v-link="'article/' + article.objectId">{{ article.title }}</a></h2>
+        <hr />
+      </div>
+      <div class="article-content">{{{ article.content }}}</div>
     </div>
   </div>
 </template>
 
 <script>
-  import { AVRequest } from '../common/Request';
+  import { utility } from '../common/common.js';
+  import { avInstance, loadPluginScript } from '../common/Request';
+  import Remarkable from 'remarkable';
+  import Prism from 'prismjs';
 
   export default {
     created() {
@@ -18,26 +24,6 @@
       }
     },
     data() {
-      // const githubRequest = GithubRequest({username: 'fangreater@gmail.com',
-      //   password: 'Fang19851122'});
-      // githubRequest.changeUser('fangxiaorong');
-      // githubRequest.changeRepo('blog');
-      // githubRequest.writeFile('master', 'test.txt', 'This is a new file for me!',
-      //   'api commit.', (error, data, status, xhr) => {
-      //     if (!error) {
-      //         console.log(data);
-      //     }
-      // });
-      // githubRequest.getSha('master', '', (error, data, status, xhr) => {
-      //     if (!error) {
-      //         console.log(data);
-      //     }
-      // })
-      // githubRequest.getTree('master', (error, data, status, xhr) => {
-      //     if (!error) {
-      //         console.log(data);
-      //     }
-      // });
       return {
         articlesinfo: {
           page: 0,
@@ -47,16 +33,52 @@
       };
     },
     methods: {
+      highlightCode() {
+        const codeBlocks = this.$el.querySelectorAll('code[class*="language-"]');
+        const that = this;
+        for (let idx = 0; idx < codeBlocks.length; idx ++) {
+          const codeBlock = codeBlocks[idx];
+          const lang = codeBlock.className.split('-').pop();
+          const nodes = codeBlock.childNodes;
+          const isOrig = (nodes.length > 0) && (nodes[0].nodeType === 3);
+          if (isOrig) {
+            if (Prism.languages[lang]) {
+              const code = Prism.highlight(utility.getInnerText(codeBlock), Prism.languages[lang]);
+              codeBlock.innerHTML = code;
+            } else {
+              loadPluginScript('prism/components/prism-sql.js', (() => {
+                that.highlightCode();
+              }));
+            }
+          }
+        }
+      },
+      decodeData(data) {
+        this.articles = data.results;
+        const md = new Remarkable({
+          xhtmlOut: true,
+          breaks: true,
+        });
+        this.articles.forEach((article) => {
+          const rwArticle = article;
+          rwArticle.content = md.render(article.content);
+        });
+        this.articlesinfo.count = data.count;
+
+        window.setTimeout(this.highlightCode, 100);
+      },
       fetchData() {
-        /* eslint new-cap: ["error", { "capIsNew": false }] */
-        const avRequest = AVRequest();
-        avRequest.getArticles(this.articlesinfo.page, (error, data) => {
+        avInstance.getPosts(this.articlesinfo.page, (error, data) => {
           if (!error) {
-            this.articles = data.results;
-            this.articlesinfo.count = data.count;
+            this.decodeData(data);
           }
         });
       },
     },
   };
 </script>
+
+<style>
+  .content { max-width: 1024px; margin: auto; padding: 10px; width: 100%; box-sizing: border-box; word-wrap: break-word; }
+  .article-head > hr { margin: 0 0 5px 0; }
+</style>
