@@ -377,6 +377,10 @@ export const AVRequest = (params) => {
       const path = `/classes/Post?count=1&limit=10&order=-updatedAt&skip=${start}`;
       request('GET', path, cb);
     },
+    getPost(objectId, cb) {
+      const path = `/classes/Post/${objectId}`;
+      request('GET', path, cb);
+    },
     writePost(uid, user, title, content, tags, sha, path, cb) {
       const postObject = {
         user,
@@ -394,37 +398,6 @@ export const AVRequest = (params) => {
     }
   };
 };
-
-export function loadPluginScript(path, callback) {
-  if (!loadPluginScript.scripts) {
-    loadPluginScript.scripts = {};
-    loadPluginScript.container = document.getElementsByTagName('head')[0];
-  }
-  
-  if (!loadPluginScript.scripts[path]) {
-    const el = document.createElement('script');
-    el.onload = el.onerror = el.onreadystatechange = (() => {
-      const loaded = loadPluginScript.scripts[path].loaded;
-      if (el.readyState && !(/^c|loade/.test(el.readyState)) || loaded) {
-        return;
-      }
-      el.onload = el.onreadystatechange = null;
-      loadPluginScript.scripts[path].loaded = true;
-
-      if (callback) {
-        callback();
-      }
-    });
-
-    el.async = false;
-    el.src = `static/plugin/${path}`;
-    loadPluginScript.container.insertBefore(el, loadPluginScript.container.lastChild);
-    loadPluginScript.scripts[path] = { loaded: false };
-  }
-
-  ///static/plugin/prism/components
-}
-
 
 export const githubInstance = GithubRequest({username: 'fangreater@gmail.com', password: 'Fang19851122'});
 export const avInstance = AVRequest();

@@ -1,3 +1,5 @@
+import Remarkable from 'remarkable';
+
 export class Base64 {
   static cb_utob(c) {
     const fromCharCode = String.fromCharCode;
@@ -46,6 +48,36 @@ export class Base64 {
   }
 }
 
+export function loadPluginScript(path, callback) {
+  if (!loadPluginScript.scripts) {
+    loadPluginScript.scripts = {};
+    loadPluginScript.container = document.getElementsByTagName('head')[0];
+  }
+  
+  if (!loadPluginScript.scripts[path]) {
+    const el = document.createElement('script');
+    el.onload = el.onerror = el.onreadystatechange = (() => {
+      const loaded = loadPluginScript.scripts[path].loaded;
+      if (el.readyState && !(/^c|loade/.test(el.readyState)) || loaded) {
+        return;
+      }
+      el.onload = el.onreadystatechange = null;
+      loadPluginScript.scripts[path].loaded = true;
+
+      if (callback) {
+        callback();
+      }
+    });
+
+    el.async = false;
+    el.src = `static/plugin/${path}`;
+    loadPluginScript.container.insertBefore(el, loadPluginScript.container.lastChild);
+    loadPluginScript.scripts[path] = { loaded: false };
+  }
+
+  ///static/plugin/prism/components
+}
+
 export const utility = {
   getInnerText(el) {
     return (typeof el.textContent === 'string') ? el.textContent : el.innerText;
@@ -58,3 +90,35 @@ export const utility = {
     }
   }
 };
+
+
+function xscript(md) {
+  function parse(state, startLine, endLine, silent) {
+    window.console.log('**************');
+    window.console.log(arguments);
+    return false;
+  }
+
+  function render(tokens, id, options, env) {
+    window.console.log('---------------');
+    window.console.log(arguments);
+  }
+
+  md.block.ruler.before('paragraph', 'xscript', parse, {alt: []});
+  md.renderer.rules.xscript = render;
+}
+
+
+const xRemarkable = new Remarkable({
+  xhtmlOut: true,
+  breaks: true,
+});
+// xRemarkable.use(xscript);
+xRemarkable.renderer.rules.fence_custom = {
+  xscript(tokens, idx/*, options, env, instance */) {
+    window.console.log(arguments);
+    return `<iframe width='100%' frameborder='0' srcdoc='${tokens[idx].content}'></iframe>`
+  },
+};
+
+export { xRemarkable, xscript };

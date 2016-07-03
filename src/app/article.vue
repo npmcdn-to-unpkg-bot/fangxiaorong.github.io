@@ -1,15 +1,55 @@
 <template>
   <div>
-    文章
+    <template v-if="article">
+      <div class="head">
+        {{ article.title }}
+        <ul class="tags">
+          <li v-for="tag in article.tags">{{ tag }}</li>
+        </ul>
+      </div>
+      <div class="content">
+        <markdown :markdown="article.content"></markdown>
+        <hr />
+        <comments :comments="comments"></comments>
+      </div>
+    </template>
+    <template v-else>
+      <div class="head">Loading...</div>
+    </template>
   </div>
 </template>
 
 <script>
-  export default {
+  import { avInstance } from '../common/Request';
+  import Markdown from '../views/markdown.vue';
+  import Comments from './comments.vue';
 
+  export default {
+    data() {
+      return {
+        article: undefined,
+        comments: undefined,
+      };
+    },
+    created() {
+      this.fetchData();
+    },
+    components: {
+      Markdown,
+      Comments,
+    },
+    methods: {
+      fetchData() {
+        avInstance.getPost(this.$route.params.uid, (error, data) => {
+          if (!error) {
+            this.article = data;
+          }
+        });
+      },
+    },
   };
 </script>
 
-<style>
-
+<style scoped=true>
+.tags > li { font-size: 0.6em; line-height: 1.6em; display: inline-block; padding: 0 5px; margin: 0 5px; border: solid 1px #EEE; }
 </style>
