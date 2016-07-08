@@ -48,6 +48,10 @@
   hr { color : #ddd; height : 1px; margin: 2em 0; border-top : solid 1px #ddd; border-bottom : none; border-left: 0; border-right: 0; }
   p#heart{ font-size: 2em; line-height: 1; text-align: center; color: #ccc; }
   .red { color:#B50000; }
+  .todo { list-style: none; margin: 0; padding: 0; }
+  .todo li { padding-left: 1.6em; background-repeat: no-repeat; background-size: 1.3em 1.3em; background-position: 0 center; }
+  .todo li.unchecked { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#e0e0e0" stroke-width="3"/></svg>'); }
+  .todo li.checked { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#bddad5" stroke-width="3"/><path fill="#5dc2af" d="M72 25L42 71 27 56l-4 4 20 20 34-52z"/></svg>'); color: #d9d9d9; text-decoration: line-through; }
   /* Home Page
   --------------------------- */
   body#index li {  margin-bottom: 1em;  }

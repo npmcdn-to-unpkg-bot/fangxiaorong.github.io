@@ -1,0 +1,62 @@
+<meta charset="utf-8">
+<script src="/static/plugin/raphael/raphael.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+</style>
+<div id="playground"></div>
+<script>
+  const paper = new Raphael(document.getElementById('playground'), 800, 400);
+  const background = paper.rect(0, 0, 300, 300).attr({fill: '#F5F5F5', stroke: 'black'});
+  // const page = background.paper.rect(0, 0, 640, 1136).attr({fill: 'blue'});
+  // page.scale(0.4);
+
+  function move(dx, dy, x, y, event) {
+    var att = {x: this.ox + dx, y: this.oy + dy, cx: this.ox + dx, cy: this.oy + dy};
+    this.attr(att);
+    if (this.bundle) {
+      this.bundle.items.forEach((item) => {
+        var att = {x: item.ox + dx, y: item.oy + dy, cx: item.ox + dx, cy: item.oy + dy};
+        item.attr(att);
+      });
+    }
+  }
+  function drag(x, y, event) {
+    this.ox = this.type == "rect" ? this.attr("x") : this.attr("cx");
+    this.oy = this.type == "rect" ? this.attr("y") : this.attr("cy");
+    this.animate({"fill-opacity": .2}, 500);
+    if (this.bundle) {
+      this.bundle.items.forEach((item) => {
+        item.ox = item.type == "rect" ? item.attr("x") : item.attr("cx");
+        item.oy = item.type == "rect" ? item.attr("y") : item.attr("cy");
+      });
+    }
+  }
+  function up(event) {
+    this.animate({'fill-opacity': 1}, 500);
+  }
+  
+  paper.setStart();
+  paper.circle(100, 100, 100, 100);
+  paper.circle(150, 150, 100, 100);
+  paper.rect(0, 100, 100, 100);
+  const bundle = paper.setFinish();
+  bundle.attr({fill: "red"});
+  // bundle.scale(0.5);
+  // bundle.attr({cx: 1001, cy: 100});
+  // bundle.attr({x: 1001, y: 100});
+  bundle.drag(move, drag, up);
+  background.bundle = bundle;
+  background.drag(move, drag, up);
+
+  const st = paper.set();
+  st.push(
+    paper.circle(10, 10, 5),
+    paper.circle(30, 10, 5)
+  );
+  st.attr({fill: "red"});
+  st.drag(move, drag, up);
+
+  // page.node.appendChild.circle(100, 100, 80).attr({
+  //   fill: '#666666', 'fill-opacity': 0, cursor: 'move'
+  // }).drag(move, drag, up);
+</script>
