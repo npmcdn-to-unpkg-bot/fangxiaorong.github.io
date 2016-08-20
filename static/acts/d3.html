@@ -1,8 +1,82 @@
 <meta charset="utf-8">
-<script src="/static/plugin/d3/d3.js"></script>
+<script src="/static/plugin/snap/snap.svg.js"></script>
 <style>
   html, body { margin: 0; padding: 0; }
+  .tree, .main { float:  left }
+  .tree ul { padding: 0; margin: 0 0 0 1.2em; list-style: none; line-height: 1.2em; }
+  .tree div::before { content: '▾  📁 '; display: inline; }
+  .tree li::before { content: '🔒 '; display: inline; }
+
+  html, body, .content { width: 100%; height: 100%; }
+  .left, .main, .attr { float: left; height: 100%; }
+  .left { width: 20%; }
+  .main { width: 60%; position: relative; }
+  .attr { width: 20%; }
+  .tool { position: absolute; left: 0; right: 0; top: 0; height: 44px; line-height: 44px; font-size: 1.5em; border-bottom: 1px solid #666666; }
+  .drawcontent { position: absolute; left: 0; right: 0; top: 44px; bottom: 0; }
+
+  .tool > div, .tool > ul, .tool > ul > li { display: inline-block; }
+  .tool > ul { margin: 0; padding: 0; }
+  .tool a { text-decoration: none; color: #2484c1; }
 </style>
-<div id="playground"></div>
+<div class="content">
+  <div class="left"></div>
+  <div class="main">
+    <div class="tool">
+      <div><a>图形</a></div>
+      <ul>
+        <li><a href="javascript:void(0)">◻︎</a></li>
+        <li><a href="javascript:void(0)">◻</a></li>
+        <li><a href="javascript:void(0)">◦</a></li>
+        <li><a href="javascript:void(0)">▽</a></li>
+      </ul>
+    </div>
+    <div class="drawcontent">
+      <svg id="drawcontent" style="width: 100%; height: 100%;"></svg>
+    </div>
+  </div>
+  <div class="attr">
+    <div>位置
+      <div>x</div><input /><div>width</div><input />
+      <div>y</div><input /><div>height</div><input />
+    </div>
+  </div>
+</div>
 <script>
+  window.onload = function () {
+    var s = Snap('#drawcontent');
+    var group = s.g({
+      fill: 'red',
+    });
+    var circle = s.circle(75, 75, 25);
+    group.append(s.rect(0, 0, 100, 100, 50, 50).attr({fill: 'green'}));
+    group.append(s.rect(0, 0, 25, 25, 5, 5));
+    group.append(circle);
+    group.toDefs();
+    var use = s.use(group);
+
+    function move(dx, dy, x, y, event) {
+      var destX = parseInt(this.ox) + parseInt(dx);
+      var destY = parseInt(this.oy) + parseInt(dy)
+      var att = {x: destX, y: destY, cx: destX, cy: destY};
+      this.attr(att);
+    }
+    function start(x, y, event) {
+      if (this.type === "rect" || this.type === "use") {
+        this.ox = this.attr("x") || 0;
+        this.oy = this.attr("y") || 0;
+      } else {
+        this.ox = this.attr("cx") || 0;
+        this.oy = this.attr("cy") || 0;
+      }
+      this.animate({"fill-opacity": .2}, 500);
+    }
+    function end(event) {
+      this.animate({'fill-opacity': 1}, 500);
+    }
+
+    // group.drag(move, start, end);
+    use.drag(move, start, end);
+    // circle.drag(move, start, end);
+  };
 </script>

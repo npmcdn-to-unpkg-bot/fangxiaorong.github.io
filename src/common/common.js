@@ -169,7 +169,7 @@ xRemarkable.renderer.rules.fence_custom = {
       src = `srcdoc='${tokens[idx].content}'`;
     }
     const iframeId = md5(src);
-    return `<div style='width: ${result[2]}; height: 1em; text-align: right;'><a href='javascript:void(0)' onclick='if (${iframeId}.contentWindow) {${iframeId}.contentWindow.location.reload();} else {${iframeId}.window.location.reload();}'>reload</a></div><iframe id='${iframeId}' width='${result[2]}' height='${result[3]}' frameborder='0' ${src}></iframe>`;
+    return `<div style='width: ${result[2]}; height: 1em; text-align: right;'><a href='javascript:void(0)' onclick='var frame = document.getElementById("${iframeId}"); if (frame.contentWindow) {frame.contentWindow.location.reload();} else {frame.window.location.reload();}'>reload</a></div><iframe id='${iframeId}' width='${result[2]}' height='${result[3]}' frameborder='0' ${src}></iframe>`;
   },
 };
 
